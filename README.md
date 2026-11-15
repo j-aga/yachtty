@@ -46,7 +46,23 @@ both off.
 - `src/levels/` - one file per level, plus free sail
 - `src/intro.ts` - the animated explainers shown before each level
 - `src/audio.ts` - sound effects and spoken instructions
+- `scripts/voices.mjs` - records the spoken lines with xAI text-to-speech
 - `src/game.ts` - what a level can read and change
 - `src/main.ts` - the game loop, home screen and level-complete card
+
+## Voices
+
+Spoken lines are played from recordings in `public/voice/`, made with xAI's
+text-to-speech API. Any line without a recording falls back to the device's
+own voice.
+
+- While the dev server runs, every line the game speaks is added to
+  `voice/phrases.json` automatically.
+- `npm run voices` records any lines that don't have a file yet. It needs
+  `XAI_API_KEY=...` in `.env.local` (not committed).
+- `voice/config.json` sets the voice and speed. Changing it re-records
+  everything.
+- `npm run voices samples` saves a sample of every available voice in
+  `voice-samples/` (open `voice-samples/index.html` to listen).
 
 `npm test` runs the engine tests.

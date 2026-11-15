@@ -1,4 +1,14 @@
-import { hush, play, setSoundOn, soundOn, speak, speaking, unlockAudio } from './audio';
+import {
+  hush,
+  noteLines,
+  play,
+  setSoundOn,
+  soundOn,
+  speak,
+  speaking,
+  spokenLines,
+  unlockAudio,
+} from './audio';
 import { Input, computeLayout } from './controls';
 import { DEFAULTS, FIXED_CY, type Game, type LevelDef, type Mode } from './game';
 import { INTROS, type Slide } from './intro';
@@ -574,6 +584,10 @@ if (import.meta.env.DEV) {
   Object.assign(window, {
     yachtty: g,
     playSound: play,
+    // Queue up lines for `npm run voices` without having to hear them first.
+    voiceLines(texts: string[]) {
+      noteLines(texts.flatMap(spokenLines));
+    },
     // Run the game forward without waiting, for testing.
     fastForward(seconds: number) {
       if (intro) intro.t += seconds;
