@@ -109,6 +109,7 @@ export function windLevel(): Mode {
           solvedTimer = 1.7;
         } else {
           mistakes += 1;
+          g.sound('wrong');
           wrong = i;
           wrongTimer = 0.8;
           const opposite = (i + 4) % 8 === answer;

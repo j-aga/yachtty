@@ -1,5 +1,7 @@
+import { hush, play, setSoundOn, soundOn, speak, unlockAudio } from './audio';
 import { Input, computeLayout } from './controls';
 import { DEFAULTS, FIXED_CY, type Game, type LevelDef, type Mode } from './game';
+import { INTROS, type Slide } from './intro';
 import { COMING_SOON, FREE_SAIL, LEVELS } from './levels';
 import { bestStars, saveStars } from './progress';
 import { render, type Camera, type WakeDot } from './render';
@@ -28,6 +30,7 @@ const buttonsEl = $('buttons');
 const viewBtn = $('viewBtn');
 const homeEl = $('home');
 const doneEl = $('done');
+const introBar = $('introBar');
 
 const input = new Input();
 input.attach(canvas);
@@ -40,6 +43,19 @@ let boatView = true; // true = boat points up the screen, false = north-up map
 let viewBlend = 1;
 let wakeTimer = 0;
 let calloutTimer = 0;
+// The explainer playing before a level, if any.
+let intro: { slides: Slide[]; index: number; t: number } | null = null;
+// What was last read aloud, so only new words are spoken.
+let saidTitle = '';
+let saidSub = '';
+
+/** Flash a big message in the middle of the screen, silently. */
+function flash(text: string): void {
+  calloutEl.textContent = text;
+  calloutEl.classList.add('show');
+  window.clearTimeout(calloutTimer);
+  calloutTimer = window.setTimeout(() => calloutEl.classList.remove('show'), 1400);
+}
 
 const g: Game = {
   boat: createBoat(0, 0, 90 * DEG),
@@ -72,13 +88,31 @@ const g: Game = {
     bannerEl.hidden = title === '';
     $('bannerTitle').textContent = title;
     $('bannerSub').textContent = sub;
+
+    // Read new instructions aloud, but not counters ticking up.
+    if (title === '') {
+      saidTitle = '';
+      saidSub = '';
+      return;
+    }
+    const counter = /⭐|^Order \d/.test(sub);
+    if (title !== saidTitle) {
+      const stop = /[.!?:]$/.test(title) ? '' : '.';
+      speak(/^Order \d/.test(sub) ? title : `${title}${stop} ${sub}`);
+    } else if (sub !== saidSub && !counter) {
+      speak(sub);
+    }
+    saidTitle = title;
+    saidSub = sub;
   },
 
   callout(text) {
-    calloutEl.textContent = text;
-    calloutEl.classList.add('show');
-    window.clearTimeout(calloutTimer);
-    calloutTimer = window.setTimeout(() => calloutEl.classList.remove('show'), 1400);
+    flash(text);
+    play(/^(Yes|Aye)/.test(text) ? 'yes' : 'ding');
+  },
+
+  sound(name) {
+    play(name);
   },
 
   setStarCount(n) {
@@ -95,7 +129,10 @@ const g: Game = {
     // A short pause so the last star or tick is seen before the card appears.
     const finished = current;
     window.setTimeout(() => {
-      if (!playing && current === finished) doneEl.hidden = false;
+      if (playing || current !== finished) return;
+      doneEl.hidden = false;
+      play('fanfare');
+      speak(`Well done! ${message}`);
     }, 700);
   },
 };
@@ -120,6 +157,9 @@ function showHome(): void {
   buttonsEl.hidden = true;
   starsEl.hidden = true;
   hintEl.hidden = true;
+  intro = null;
+  introBar.hidden = true;
+  hush();
   g.say('');
 
   const grid = $('levelGrid');
@@ -133,7 +173,7 @@ function showHome(): void {
       `<span class="num">Level ${i + 1}</span><span class="icon">${def.icon}</span>` +
       `<span class="name">${def.title}</span><span>${def.blurb}</span>` +
       `<span class="earned">${starRow(bestStars(def.id))}</span>`;
-    b.addEventListener('click', () => startLevel(def));
+    b.addEventListener('click', () => startLevel(def, true));
     grid.append(b);
   });
   const free = document.createElement('button');
@@ -142,7 +182,7 @@ function showHome(): void {
   free.innerHTML =
     `<span class="num">Any time</span><span class="icon">${FREE_SAIL.icon}</span>` +
     `<span class="name">${FREE_SAIL.title}</span><span>${FREE_SAIL.blurb}</span>`;
-  free.addEventListener('click', () => startLevel(FREE_SAIL));
+  free.addEventListener('click', () => startLevel(FREE_SAIL, true));
   grid.append(free);
   COMING_SOON.forEach((title, i) => {
     const d = document.createElement('div');
@@ -156,10 +196,47 @@ function showHome(): void {
   homeEl.hidden = false;
 }
 
-function startLevel(def: LevelDef): void {
+/** Show slide `i` of the explainer that is playing. */
+function showSlide(i: number): void {
+  if (!intro || !current) return;
+  intro.index = i;
+  intro.t = 0;
+  const n = LEVELS.indexOf(current) + 1;
+  g.say(`Level ${n}: ${current.title}`, intro.slides[i].text);
+  const last = i === intro.slides.length - 1;
+  $('introNext').textContent = last ? "Let's go! ▶" : 'Next ▶';
+  $('introDots').textContent =
+    intro.slides.length > 1 ? intro.slides.map((_, k) => (k === i ? '●' : '○')).join('') : '';
+}
+
+/** Start a level. With `explain`, play its animated explainer first. */
+function startLevel(def: LevelDef, explain = false): void {
   current = def;
   homeEl.hidden = true;
   doneEl.hidden = true;
+  hush();
+
+  const slides = INTROS[def.id];
+  if (explain && slides) {
+    playing = false;
+    mode = null;
+    intro = { slides, index: 0, t: 0 };
+    g.say('');
+    hintEl.hidden = true;
+    starsEl.hidden = true;
+    buttonsEl.hidden = false;
+    buttonsEl.classList.add('corner');
+    viewBtn.hidden = true;
+    $('resetBtn').hidden = true;
+    $('helpBtn').hidden = true;
+    introBar.hidden = false;
+    showSlide(0);
+    return;
+  }
+  intro = null;
+  introBar.hidden = true;
+  $('resetBtn').hidden = false;
+  $('helpBtn').hidden = !slides;
 
   // Back to a clean slate, then let the level set itself up.
   g.opts = { ...DEFAULTS };
@@ -255,9 +332,13 @@ function sail(dt: number): SailEvent[] {
 
   const events = stepBoat(boat, g.wind, dt);
   for (const event of events) {
-    g.callout(event === 'tack' ? 'Nice tack!' : 'Gybe! Mind the boom!');
+    flash(event === 'tack' ? 'Nice tack!' : 'Gybe! Mind the boom!');
+    play(event);
   }
-  if (opts.bay && keepInBay(boat)) g.callout('Bump! Turn around.');
+  if (opts.bay && keepInBay(boat)) {
+    flash('Bump! Turn around.');
+    play('bump');
+  }
 
   // Foam trail behind the boat.
   wakeTimer -= dt;
@@ -320,6 +401,12 @@ function frame(now: number): void {
 
   tick(dt);
 
+  if (intro) {
+    intro.t += dt;
+    intro.slides[intro.index].draw(ctx, g.w, g.h, intro.t);
+    requestAnimationFrame(frame);
+    return;
+  }
   if (mode?.drawScene) {
     mode.drawScene(g, ctx);
   } else {
@@ -384,7 +471,39 @@ $('againBtn').addEventListener('click', () => {
 });
 $('nextBtn').addEventListener('click', () => {
   const next = current && nextAfter(current);
-  if (next) startLevel(next);
+  if (next) startLevel(next, true);
+});
+$('helpBtn').addEventListener('click', () => {
+  if (current) startLevel(current, true);
+});
+$('introNext').addEventListener('click', () => {
+  if (!intro || !current) return;
+  if (intro.index < intro.slides.length - 1) showSlide(intro.index + 1);
+  else startLevel(current);
+});
+$('introSkip').addEventListener('click', () => {
+  if (current) startLevel(current);
+});
+
+// Sound on and off, from the home screen or during a level.
+function showSound(): void {
+  $('soundBtn').textContent = soundOn() ? '🔊' : '🔇';
+  $('homeSoundBtn').textContent = soundOn() ? '🔊 Sound on' : '🔇 Sound off';
+}
+for (const id of ['soundBtn', 'homeSoundBtn']) {
+  $(id).addEventListener('click', (e) => {
+    setSoundOn(!soundOn());
+    showSound();
+    (e.currentTarget as HTMLElement).blur();
+  });
+}
+showSound();
+
+// Browsers only let sound start from a tap or key press.
+window.addEventListener('pointerdown', unlockAudio, true);
+window.addEventListener('keydown', unlockAudio, true);
+document.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement).closest('button')) play('tap');
 });
 viewBtn.addEventListener('click', () => {
   boatView = !boatView;
@@ -400,8 +519,10 @@ if (import.meta.env.DEV) {
   // Handy for poking at the game from the browser console.
   Object.assign(window, {
     yachtty: g,
+    playSound: play,
     // Run the game forward without waiting, for testing.
     fastForward(seconds: number) {
+      if (intro) intro.t += seconds;
       for (let t = 0; t < seconds; t += 1 / 60) tick(1 / 60);
     },
   });

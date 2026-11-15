@@ -28,6 +28,10 @@ Then open http://localhost:5173. To play on an iPad on the same Wi-Fi, run
 
 Plus **Free sail**, open any time. Best stars are saved on the device.
 
+Each level opens with a short animated explainer ("Show me how" replays it).
+Instructions are read aloud and there are sound effects; the 🔊 button turns
+both off.
+
 ## Controls
 
 - **Tiller** (bottom left): drag left and right. The boat turns the opposite way.
@@ -40,6 +44,8 @@ Plus **Free sail**, open any time. Best stars are saved on the device.
 - `src/render.ts` - drawing the bay, boat and on-screen controls
 - `src/controls.ts` - touch, mouse and keyboard input
 - `src/levels/` - one file per level, plus free sail
+- `src/intro.ts` - the animated explainers shown before each level
+- `src/audio.ts` - sound effects and spoken instructions
 - `src/game.ts` - what a level can read and change
 - `src/main.ts` - the game loop, home screen and level-complete card
 

@@ -296,3 +296,34 @@ button.primary {
 .row button.primary {
   background: #ff8a3d;
 }
+
+/* A row of buttons inside the corner stack. */
+.brow {
+  display: flex;
+  gap: 8px;
+}
+button.sound {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+/* Next / Skip under the explainer before a level. */
+#introBar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+#introBar button {
+  font-size: 19px;
+  padding: 12px 22px;
+}
+#introDots {
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: 5px;
+  white-space: nowrap;
+}

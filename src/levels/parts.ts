@@ -291,6 +291,7 @@ export function partsLevel(): Mode {
         nextTimer = 0.8;
       } else {
         mistakes += 1;
+        g.sound('wrong');
         wrong = hit;
         wrongTimer = 0.9;
         g.say(

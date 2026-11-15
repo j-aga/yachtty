@@ -70,6 +70,7 @@ export function gybingLevel(): Mode {
           ask(g, 'That was a tack: the long way round! Try again with the wind behind you.');
         } else if (up > 50 && !warned) {
           warned = true;
+          g.sound('wrong');
           g.say(
             "Oops, we're turning towards the wind!",
             `Pull the tiller the other way (${awayFromSail()}), away from the sail.`,

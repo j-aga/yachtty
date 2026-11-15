@@ -10,6 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#2a93c9" />
     <title>Yachtty</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
@@ -26,9 +27,19 @@
     <div id="stars" hidden>⭐ 0</div>
 
     <div id="buttons" hidden>
-      <button id="homeBtn" type="button">Home</button>
+      <div class="brow">
+        <button id="soundBtn" type="button" class="sound" aria-label="Sound on or off">🔊</button>
+        <button id="homeBtn" type="button">Home</button>
+      </div>
       <button id="viewBtn" type="button">Map view</button>
       <button id="resetBtn" type="button">Start again</button>
+      <button id="helpBtn" type="button">Show me how</button>
+    </div>
+
+    <div id="introBar" hidden>
+      <button id="introSkip" type="button">Skip</button>
+      <span id="introDots"></span>
+      <button id="introNext" type="button" class="primary">Next ▶</button>
     </div>
 
     <div id="home" class="screen">
@@ -36,6 +47,7 @@
         <h1>⛵ Yachtty</h1>
         <p class="tagline">Learn to sail a dinghy, one level at a time.</p>
         <div id="levelGrid" class="grid"></div>
+        <p><button id="homeSoundBtn" type="button" class="sound">🔊 Sound on</button></p>
         <p class="keys">On a keyboard: ← → move the tiller, ↓ pulls the mainsheet in, ↑ lets it out.</p>
       </div>
     </div>

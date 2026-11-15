@@ -197,6 +197,7 @@ export function giveWayLevel(): Mode {
         solvedTimer = 3;
       } else {
         mistakes += 1;
+        g.sound('wrong');
         wrong = i;
         wrongTimer = 0.8;
         g.say(r.title, `Not that one. ${r.sub}`);

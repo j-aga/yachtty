@@ -68,6 +68,7 @@ export function tackingLevel(): Mode {
           }
         } else if (away > 50 && !warned) {
           warned = true;
+          g.sound('wrong');
           g.say(
             "Oops, we're turning away from the wind!",
             `Push the tiller the other way (${towardsSail()}), towards the sail.`,

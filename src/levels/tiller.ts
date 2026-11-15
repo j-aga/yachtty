@@ -35,6 +35,7 @@ export function tillerLevel(): Mode {
           g.say('Tiller left, boat turns right!', 'Now push the tiller RIGHT and hold it there.');
         } else if (turned <= -15 && !warned) {
           warned = true;
+          g.sound('wrong');
           g.say('Oops, that turned us left!', 'Push the tiller the other way: to the LEFT.');
         }
       } else if (step === 1) {
@@ -44,6 +45,7 @@ export function tillerLevel(): Mode {
           g.say('Tiller right, boat turns left!', 'Now let go. The tiller goes back to the middle and the boat sails straight.');
         } else if (turned >= 15 && !warned) {
           warned = true;
+          g.sound('wrong');
           g.say('Oops, that turned us right!', 'Push the tiller the other way: to the RIGHT.');
         }
       } else if (step === 2) {

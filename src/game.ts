@@ -1,3 +1,4 @@
+import type { Sound } from './audio';
 import type { Input } from './controls';
 import type { Marker, Point } from './render';
 import type { Boat, SailEvent, Wind } from './sim';
@@ -71,6 +72,8 @@ export interface Game {
   /** Flash a big message in the middle of the screen. */
   callout(text: string): void;
   setStarCount(n: number): void;
+  /** Play a sound effect. */
+  sound(name: Sound): void;
   /** End the level and show the stars earned (1 to 3). */
   finish(stars: number, message: string): void;
 }
