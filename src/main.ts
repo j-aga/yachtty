@@ -226,8 +226,13 @@ function showSlide(i: number): void {
   intro.index = i;
   intro.t = 0;
   const n = LEVELS.indexOf(current) + 1;
-  g.say(`Level ${n}: ${current.title}`, intro.slides[i].text);
   const last = i === intro.slides.length - 1;
+  // Make it plain that this part is for watching, and when it's time to play.
+  const text =
+    (i === 0 ? 'Watch this first. ' : '') +
+    intro.slides[i].text +
+    (last ? " Now it's your turn. Tap Let's go!" : '');
+  g.say(`Level ${n}: ${current.title}`, text);
   $('introNext').textContent = last ? "Let's go! ▶" : 'Next ▶';
   $('introDots').textContent =
     intro.slides.length > 1 ? intro.slides.map((_, k) => (k === i ? '●' : '○')).join('') : '';
