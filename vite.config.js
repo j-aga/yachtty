@@ -41,5 +41,8 @@ function voiceRecorder() {
 }
 
 export default defineConfig({
+  // Relative paths, so the built game works at any address, such as
+  // https://<user>.github.io/yachtty/ on GitHub Pages.
+  base: './',
   plugins: [voiceRecorder()],
 });
