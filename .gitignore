@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+
+# Secrets (API keys). Never commit these.
+.env
+.env.*
+
+# Voice samples for choosing a voice
+voice-samples/
