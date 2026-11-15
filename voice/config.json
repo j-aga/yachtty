@@ -3,6 +3,11 @@
   "speed": 1,
   "bitRate": 64000,
   "replace": {
-    "bow": "/baʊ/"
+    "bow": "/baʊ/",
+    "buoy": "boy",
+    "buoys": "boys",
+    "gybe": "jibe",
+    "gybed": "jibed",
+    "gybing": "jibing"
   }
 }
