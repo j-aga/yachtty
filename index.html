@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#2a93c9" />
+    <title>Yachtty</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <div id="top">
+      <div id="banner" hidden>
+        <div id="bannerTitle"></div>
+        <div id="bannerSub"></div>
+      </div>
+      <div id="hint" class="pill" hidden></div>
+    </div>
+    <div id="callout"></div>
+    <div id="stars" hidden>⭐ 0</div>
+
+    <div id="buttons" hidden>
+      <button id="homeBtn" type="button">Home</button>
+      <button id="viewBtn" type="button">Map view</button>
+      <button id="resetBtn" type="button">Start again</button>
+    </div>
+
+    <div id="home" class="screen">
+      <div class="home-inner">
+        <h1>⛵ Yachtty</h1>
+        <p class="tagline">Learn to sail a dinghy, one level at a time.</p>
+        <div id="levelGrid" class="grid"></div>
+        <p class="keys">On a keyboard: ← → move the tiller, ↓ pulls the mainsheet in, ↑ lets it out.</p>
+      </div>
+    </div>
+
+    <div id="done" class="screen" hidden>
+      <div class="card">
+        <div id="doneStars" class="big-stars"></div>
+        <h2 id="doneTitle">Well done!</h2>
+        <p id="doneMessage"></p>
+        <div class="row">
+          <button id="nextBtn" type="button" class="primary">Next level</button>
+          <button id="againBtn" type="button">Play again</button>
+          <button id="doneHomeBtn" type="button">Home</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

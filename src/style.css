@@ -1,0 +1,298 @@
+:root {
+  --font: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --ink: #24435c;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #2a93c9;
+  font-family: var(--font);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* Instruction banner and sailing hint, stacked at the top between the dials. */
+#top {
+  position: fixed;
+  top: calc(12px + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100vw - 300px * var(--ui, 1)), 620px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+#banner {
+  width: 100%;
+  padding: 10px 18px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ink);
+  text-align: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+}
+#bannerTitle {
+  font-size: clamp(16px, 2.3vw, 21px);
+  font-weight: 800;
+}
+#bannerSub {
+  margin-top: 3px;
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 600;
+  line-height: 1.3;
+}
+#bannerSub:empty {
+  display: none;
+}
+
+.pill {
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: #1f6fa8;
+  color: #fff;
+  font-size: clamp(14px, 2vw, 19px);
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+  transition: background 0.25s;
+}
+.pill[data-trim="good"] { background: #2e9e5b; }
+.pill[data-trim="ok"] { background: #1f6fa8; }
+.pill[data-trim="pinching"],
+.pill[data-trim="luffing"],
+.pill[data-trim="tight"] { background: #e08a1e; }
+.pill[data-trim="nogo"] { background: #d64545; }
+
+#callout {
+  position: fixed;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  font-size: clamp(28px, 5.5vw, 52px);
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25), 0 0 18px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity 0.25s, transform 0.25s;
+}
+#callout.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#stars {
+  position: fixed;
+  left: calc(16px + env(safe-area-inset-left));
+  top: calc(178px * var(--ui, 1) + env(safe-area-inset-top));
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+#buttons {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right));
+  top: calc(178px * var(--ui, 1) + env(safe-area-inset-top));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+/* With no compass in the corner, the buttons can sit at the top. */
+#buttons.corner {
+  top: calc(14px + env(safe-area-inset-top));
+}
+
+button {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--ink);
+  background: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+button.primary {
+  background: #ff8a3d;
+  color: #fff;
+}
+
+/* Full-screen overlays: home and level complete. */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(20px + env(safe-area-inset-top)) 16px 24px;
+}
+#home {
+  background: linear-gradient(#4fb4e0, #2a93c9 55%, #1f7fb8);
+  color: #fff;
+}
+.home-inner {
+  width: min(100%, 860px);
+  margin: auto;
+  text-align: center;
+}
+#home h1 {
+  margin: 0;
+  font-size: clamp(40px, 8vw, 64px);
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+}
+.tagline {
+  margin: 4px 0 22px;
+  font-size: clamp(16px, 2.4vw, 21px);
+  font-weight: 600;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+.level {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 12px 14px;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+}
+.level .num {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5b7890;
+}
+.level .icon {
+  font-size: 40px;
+  line-height: 1.1;
+}
+.level .name {
+  font-size: 19px;
+  font-weight: 800;
+}
+.level .earned {
+  margin-top: 4px;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+.level .earned .off {
+  opacity: 0.22;
+}
+.level.next {
+  outline: 4px solid #ffd23f;
+}
+.level.free {
+  background: #ffe9c7;
+}
+.level.soon {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  box-shadow: none;
+  cursor: default;
+}
+.level.soon .num {
+  color: rgba(255, 255, 255, 0.85);
+}
+.keys {
+  margin: 22px 0 0;
+  font-size: 15px;
+  opacity: 0.85;
+}
+@media (hover: none) {
+  .keys {
+    display: none;
+  }
+}
+
+#done {
+  align-items: center;
+  background: rgba(20, 70, 110, 0.55);
+}
+.card {
+  max-width: 480px;
+  margin: auto;
+  background: #fff;
+  color: var(--ink);
+  border-radius: 24px;
+  padding: 22px 28px 26px;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.18);
+  font-size: 19px;
+  line-height: 1.4;
+  text-align: center;
+}
+.card h2 {
+  margin: 4px 0 6px;
+  font-size: 32px;
+}
+.card p {
+  margin: 0 0 18px;
+  font-weight: 600;
+}
+.big-stars {
+  font-size: 52px;
+  letter-spacing: 6px;
+}
+.big-stars .off {
+  opacity: 0.2;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.row button {
+  font-size: 18px;
+  padding: 12px 20px;
+  background: #e6eef4;
+}
+.row button.primary {
+  background: #ff8a3d;
+}
