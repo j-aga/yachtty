@@ -1,5 +1,8 @@
 {
   "voice": "ara",
   "speed": 1,
-  "bitRate": 64000
+  "bitRate": 64000,
+  "replace": {
+    "bow": "/baʊ/"
+  }
 }
