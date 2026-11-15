@@ -64,6 +64,7 @@ export interface Scene {
   markers: Marker[];
   flag: Point | null;
   target: Point | null; // where the edge-of-screen arrow points
+  safeTop: number; // screen pixels at the top covered by the banner and hint
   starOverTarget: boolean; // bounce a star over the target when it is on screen
 }
 
@@ -475,47 +476,96 @@ function toScreen(cam: Camera, x: number, y: number): [number, number] {
   return [cam.cx + dx * c - dy * sn, cam.cy + dx * sn + dy * c];
 }
 
-/** A star over the target buoy, or an arrow at the screen edge pointing to it. */
+/**
+ * Shows the way to the target: a trail of little arrows leading from the boat,
+ * and a badge at the edge of the clear part of the screen when the target is
+ * out of view or hidden behind the instructions.
+ */
 function drawTargetArrow(ctx: Ctx, s: Scene, target: Point): void {
   const ui = s.input.layout.scale;
   const [tx, ty] = toScreen(s.cam, target.x, target.y);
-  const m = 46 * ui;
-  const top = 100 * ui; // stay clear of the hint at the top of the screen
-  const onScreen = tx > m && tx < s.w - m && ty > top && ty < s.h - m;
+
+  // The part of the screen with nothing drawn over it: below the banner and
+  // hint, between the dials and buttons, above the speed bar.
+  const side = Math.min(165 * ui, s.w * 0.24);
+  const left = side;
+  const right = s.w - side;
+  const top = Math.max(s.safeTop, 50 * ui) + 42 * ui;
+  const bottom = s.h - 130 * ui;
+  const inView = tx > left && tx < right && ty > top && ty < bottom;
+
+  // Slide along the line from the boat towards the target until it reaches
+  // the edge of that clear area.
+  const bx = s.cam.cx;
+  const by = s.cam.cy;
+  const dx = tx - bx;
+  const dy = ty - by;
+  let t = 1;
+  if (dx > 0) t = Math.min(t, (right - bx) / dx);
+  if (dx < 0) t = Math.min(t, (left - bx) / dx);
+  if (dy > 0) t = Math.min(t, (bottom - by) / dy);
+  if (dy < 0) t = Math.min(t, (top - by) / dy);
+  t = Math.max(t, 0);
+  const ax = inView ? tx : bx + dx * t;
+  const ay = inView ? ty : by + dy * t;
+  const ang = Math.atan2(dy, dx);
   const bounce = Math.sin(s.time * 4) * 4 * ui;
-  if (onScreen) {
+
+  // Arrows flowing from the boat towards the target.
+  const from = 48 * ui;
+  const to = Math.hypot(ax - bx, ay - by) - (inView ? 26 : 44) * ui;
+  const gap = 30 * ui;
+  if (to > from + gap * 0.5) {
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.rotate(ang);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 5 * ui;
+    const flow = (s.time * 34 * ui) % gap;
+    for (let d = from + flow; d < to; d += gap) {
+      const ends = Math.min(1, (d - from) / gap + 0.25, (to - d) / gap + 0.25);
+      ctx.strokeStyle = `rgba(255,214,63,${0.9 * Math.max(0, ends)})`;
+      ctx.beginPath();
+      ctx.moveTo(d - 7 * ui, -8 * ui);
+      ctx.lineTo(d, 0);
+      ctx.lineTo(d - 7 * ui, 8 * ui);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  if (inView) {
     if (s.starOverTarget) star(ctx, tx, ty - 34 * ui + bounce, 15 * ui);
     return;
   }
-  // Slide the marker along the line from the boat to the target until it
-  // reaches the edge of the screen.
-  const dx = tx - s.cam.cx;
-  const dy = ty - s.cam.cy;
-  let t = 1;
-  if (dx > 0) t = Math.min(t, (s.w - m - s.cam.cx) / dx);
-  if (dx < 0) t = Math.min(t, (m - s.cam.cx) / dx);
-  if (dy > 0) t = Math.min(t, (s.h - m - s.cam.cy) / dy);
-  if (dy < 0) t = Math.min(t, (top - s.cam.cy) / dy);
-  const ax = s.cam.cx + dx * t;
-  const ay = s.cam.cy + dy * t;
-  const ang = Math.atan2(dy, dx);
 
+  // The badge: a star in a ring, with an arrow pointing on towards the target.
+  const pulse = 0.5 + 0.5 * Math.sin(s.time * 4);
   ctx.save();
   ctx.translate(ax, ay);
-  ctx.fillStyle = 'rgba(255,255,255,0.92)';
+  ctx.fillStyle = `rgba(255,214,63,${0.22 + 0.18 * pulse})`;
   ctx.beginPath();
-  ctx.arc(0, 0, 25 * ui, 0, Math.PI * 2);
+  ctx.arc(0, 0, (36 + 6 * pulse) * ui, 0, Math.PI * 2);
   ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#ffb02e';
+  ctx.lineWidth = 4 * ui;
+  ctx.beginPath();
+  ctx.arc(0, 0, 28 * ui, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
   ctx.save();
   ctx.rotate(ang);
+  ctx.fillStyle = '#ffb02e';
   ctx.beginPath();
-  ctx.moveTo(40 * ui + bounce, 0);
-  ctx.lineTo(24 * ui + bounce, -12 * ui);
-  ctx.lineTo(24 * ui + bounce, 12 * ui);
+  ctx.moveTo(50 * ui + bounce, 0);
+  ctx.lineTo(33 * ui + bounce, -13 * ui);
+  ctx.lineTo(33 * ui + bounce, 13 * ui);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
-  star(ctx, 0, 0, 15 * ui);
+  star(ctx, 0, 0, 17 * ui);
   ctx.restore();
 }
 

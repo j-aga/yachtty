@@ -32,6 +32,7 @@ const $ = (id: string) => document.getElementById(id)!;
 
 const canvas = $('game') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
+const topEl = $('top');
 const bannerEl = $('banner');
 const hintEl = $('hint');
 const calloutEl = $('callout');
@@ -186,6 +187,8 @@ function showHome(): void {
   const grid = $('levelGrid');
   grid.textContent = '';
   const upNext = LEVELS.find((l) => bestStars(l.id) === 0);
+  const total = LEVELS.reduce((n, l) => n + bestStars(l.id), 0);
+  $('totalStars').textContent = `⭐ ${total} of ${LEVELS.length * 3} stars`;
   LEVELS.forEach((def, i) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -497,6 +500,7 @@ function frame(now: number): void {
       markers: g.markers,
       flag: g.flag,
       target: g.target,
+      safeTop: g.target ? topEl.getBoundingClientRect().bottom : 0,
       starOverTarget: o.starOverTarget,
     });
     if (mode?.draw) mode.draw(g, ctx);
@@ -562,6 +566,11 @@ for (const id of ['soundBtn', 'homeSoundBtn']) {
   });
 }
 showSound();
+
+// Stop talking when the app is put away or the iPad is locked.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) hush();
+});
 
 // Browsers only let sound start from a tap or key press.
 window.addEventListener('pointerdown', unlockAudio, true);

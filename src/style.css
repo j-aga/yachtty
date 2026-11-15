@@ -181,7 +181,7 @@ button.primary {
   text-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
 }
 .tagline {
-  margin: 4px 0 22px;
+  margin: 4px 0 10px;
   font-size: clamp(16px, 2.4vw, 21px);
   font-weight: 600;
 }
@@ -326,4 +326,16 @@ button.sound {
   font-size: 15px;
   letter-spacing: 5px;
   white-space: nowrap;
+}
+
+/* Stars earned so far, on the home screen. */
+.total {
+  display: inline-block;
+  margin: 2px 0 14px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
 }
