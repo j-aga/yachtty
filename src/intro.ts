@@ -254,7 +254,7 @@ const GREEN = '#1e7d46';
 
 const parts: Slide[] = [
   {
-    text: 'A dinghy is a small sailing boat. The wind pushes on the sail, and off you go!',
+    text: 'A dinghy is a small sailing boat. The wind pushes on the sail, and off it goes!',
     draw(c, w, h, t) {
       const run = sail(t % 9, NORTH, { heading: 90, sheet: 1 }, (time) => ({ tiller: 0, sheet: time > 1.2 ? 0.38 : 1 }));
       const v = frame(c, w, h, t, { span: 36, x: run.boat.x, y: run.boat.y });
@@ -265,7 +265,7 @@ const parts: Slide[] = [
     },
   },
   {
-    text: 'Every part of the boat has a name. Tap the dots to learn them, then try the quiz.',
+    text: 'Every part of the boat has a name. In this level you will tap the dots to learn them, then try a quiz.',
     draw(c, w, h, t) {
       const v = frame(c, w, h, t, { span: 30, windFrom: null });
       const b = createBoat(0, 0, 0);
@@ -335,7 +335,7 @@ const wind: Slide[] = [
     },
   },
   {
-    text: 'Ripples run with the wind, and a loose sail flaps away from it. Tap where the wind is coming from.',
+    text: 'Ripples run with the wind, and a loose sail flaps away from it. In this level you will spot where the wind is coming from.',
     draw(c, w, h, t) {
       const v = frame(c, w, h, t, { span: 34 });
       const b = createBoat(0, 0, 65 * DEG);
@@ -350,7 +350,7 @@ const WEST: Wind = { from: 270 * DEG, strength: 1 };
 
 const tiller: Slide[] = [
   {
-    text: 'The tiller steers the boat, but it works backwards! Push the tiller left and the boat turns right. Push it right and the boat turns left.',
+    text: 'The tiller steers the boat, but it works backwards! When the tiller goes left, the boat turns right. When the tiller goes right, the boat turns left.',
     draw(c, w, h, t) {
       const time = t % 9;
       const script = (s: number): Control => ({ tiller: s > 1 && s < 2.4 ? -1 : s > 4.2 && s < 6.1 ? 1 : 0 });
@@ -370,7 +370,7 @@ const tiller: Slide[] = [
 
 const mainsheet: Slide[] = [
   {
-    text: 'The mainsheet is the rope that pulls the sail in. Pull it in and the sail fills with wind. Let it out and the sail flaps and you slow down.',
+    text: 'The mainsheet is the rope that pulls the sail in. When it is pulled in, the sail fills with wind. When it is let out, the sail flaps and the boat slows down.',
     draw(c, w, h, t) {
       const time = t % 10;
       const pulled = (s: number) => s > 2 && s < 6.5;
@@ -390,7 +390,7 @@ const mainsheet: Slide[] = [
     },
   },
   {
-    text: 'Sailing towards the wind, pull the sail in. Sailing away from the wind, let it out.',
+    text: 'Sailing towards the wind, the sail comes in. Sailing away from the wind, the sail goes out.',
     draw(c, w, h, t) {
       // Swing slowly between pointing near the wind and pointing away from it.
       const run = sail(t % 14, NORTH, { heading: 55, speed: 6 }, (s, b) => {
@@ -410,7 +410,7 @@ const mainsheet: Slide[] = [
 
 const noGo: Slide[] = [
   {
-    text: 'No boat can sail straight into the wind. The sail just flaps and you stop. That red slice is the no go zone.',
+    text: 'No boat can sail straight into the wind. The sail just flaps and the boat stops. That red slice is the no go zone.',
     draw(c, w, h, t) {
       const run = sail(t % 8, NORTH, { heading: 90, speed: 6 }, (s, b) => ({
         tiller: s > 1 && Math.abs(b.windAngle) > 8 * DEG ? 1 : 0,
@@ -426,7 +426,7 @@ const noGo: Slide[] = [
     },
   },
   {
-    text: 'Right beside the no go zone is close hauled. Across the wind is a reach. With the wind behind you, it is a run.',
+    text: 'Right beside the no go zone is close hauled. Across the wind is a reach. With the wind behind, it is a run.',
     draw(c, w, h, t) {
       const v = frame(c, w, h, t, { span: 64 });
       const three: [string, number, number, number][] = [
@@ -459,7 +459,7 @@ const ZIG_UP: [number, number][] = [
 
 const tacking: Slide[] = [
   {
-    text: "You can't sail straight into the wind. So to get upwind, you zigzag. Each turn through the wind is called a tack.",
+    text: "A boat can't sail straight into the wind. So to get upwind, it zigzags. Each turn through the wind is called a tack.",
     draw(c, w, h, t) {
       const v = frame(c, w, h, t, { span: 150, y: 12 });
       const at = along(ZIG_UP, (t % 11) * 14);
@@ -476,7 +476,7 @@ const tacking: Slide[] = [
     },
   },
   {
-    text: 'To tack, push the tiller towards the sail and hold it. The front of the boat swings through the wind, and the sail fills on the other side.',
+    text: 'In a tack, the tiller is pushed towards the sail and held there. The front of the boat swings through the wind, and the sail fills on the other side.',
     draw(c, w, h, t) {
       const time = t % 8;
       let turning = false;
@@ -498,7 +498,7 @@ const tacking: Slide[] = [
 
 const gybing: Slide[] = [
   {
-    text: 'With the wind behind you, turning so the wind swaps sides is called a gybe. The boom swings across fast, so always duck!',
+    text: 'With the wind behind, turning so the wind swaps sides is called a gybe. The boom swings across fast, so sailors always duck!',
     draw(c, w, h, t) {
       const time = t % 8;
       let turning = false;
@@ -606,7 +606,7 @@ const COURSE: [number, number][] = [
 
 const race: Slide[] = [
   {
-    text: 'Race time! Zigzag up to the orange buoy. Sail across to the pink one. Then gybe and run down to the yellow one. Use everything you have learnt!',
+    text: 'This is the race course. First comes a zigzag up to the orange buoy. Next, across to the pink one. Last, a gybe and a run down to the yellow one.',
     draw(c, w, h, t) {
       const v = frame(c, w, h, t, { span: 270, x: -15, y: 14 });
       const at = along(COURSE, (t % 16) * 30);
