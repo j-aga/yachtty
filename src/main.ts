@@ -1,4 +1,4 @@
-import { hush, play, setSoundOn, soundOn, speak, unlockAudio } from './audio';
+import { hush, play, setSoundOn, soundOn, speak, speaking, unlockAudio } from './audio';
 import { Input, computeLayout } from './controls';
 import { DEFAULTS, FIXED_CY, type Game, type LevelDef, type Mode } from './game';
 import { INTROS, type Slide } from './intro';
@@ -48,6 +48,9 @@ let intro: { slides: Slide[]; index: number; t: number } | null = null;
 // What was last read aloud, so only new words are spoken.
 let saidTitle = '';
 let saidSub = '';
+let saidText = ''; // the last instruction, for repeating
+let sinceSaid = 0;
+let repeatAt = 25;
 
 /** Flash a big message in the middle of the screen, silently. */
 function flash(text: string): void {
@@ -93,14 +96,22 @@ const g: Game = {
     if (title === '') {
       saidTitle = '';
       saidSub = '';
+      saidText = '';
       return;
     }
     const counter = /⭐|^Order \d/.test(sub);
+    let words = '';
     if (title !== saidTitle) {
       const stop = /[.!?:]$/.test(title) ? '' : '.';
-      speak(/^Order \d/.test(sub) ? title : `${title}${stop} ${sub}`);
+      words = /^Order \d/.test(sub) ? title : `${title}${stop} ${sub}`;
     } else if (sub !== saidSub && !counter) {
-      speak(sub);
+      words = sub;
+    }
+    if (words) {
+      speak(words);
+      saidText = words;
+      sinceSaid = 0;
+      repeatAt = 25;
     }
     saidTitle = title;
     saidSub = sub;
@@ -253,6 +264,7 @@ function startLevel(def: LevelDef, explain = false): void {
   viewBlend = 1;
   viewBtn.textContent = 'Map view';
   shownTrim = null;
+  nagTrim = null;
   hintEl.hidden = true;
 
   mode = def.make();
@@ -309,6 +321,48 @@ function updateHint(dt: number): void {
   const show =
     g.opts.simulate && (g.opts.hints === 'all' || (g.opts.hints === 'steering' && steering));
   hintEl.hidden = !show;
+  remind(dt, show);
+}
+
+// What to say when a problem has gone on for a while without being fixed.
+const REMINDERS: Partial<Record<Trim, string>> = {
+  nogo: "You're in the no go zone. Steer away from the wind.",
+  pinching: "You're too close to the wind. Steer away a little.",
+  luffing: 'Your sail is flapping. Pull the mainsheet in.',
+  tight: 'Your sail is too tight. Let the mainsheet out a bit.',
+};
+
+let nagTrim: Trim | null = null;
+let nagFor = 0;
+let nagAt = 0;
+
+/** Spoken nudges: the hint if it's ignored, and the instruction if nothing happens. */
+function remind(dt: number, hintShown: boolean): void {
+  const trim = hintShown ? shownTrim : null;
+  if (trim !== nagTrim) {
+    nagTrim = trim;
+    nagFor = 0;
+    nagAt = trim === 'ok' ? 7 : 3.5;
+  }
+  let words = trim ? REMINDERS[trim] : undefined;
+  if (trim === 'ok') {
+    words = g.boat.trimError > 0 ? 'Nearly there. Pull the mainsheet in a tiny bit more.' : 'Nearly there. Let the mainsheet out a tiny bit more.';
+  }
+  if (words && g.opts.remind) {
+    nagFor += dt;
+    if (nagFor >= nagAt && !speaking()) {
+      speak(words);
+      nagAt = nagFor + 10; // and again every so often until it's sorted
+      sinceSaid = Math.min(sinceSaid, repeatAt - 8); // don't repeat the instruction straight after
+    }
+  }
+
+  // Nothing new for a good while? Say the instruction again.
+  sinceSaid += dt;
+  if (saidText && sinceSaid >= repeatAt && !speaking()) {
+    speak(saidText);
+    repeatAt = sinceSaid + 40;
+  }
 }
 
 // --------------------------------------------------------------- loop ----

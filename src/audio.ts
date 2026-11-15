@@ -157,6 +157,11 @@ export function speak(text: string): void {
   synth.speak(u);
 }
 
+/** Is something being read aloud right now? */
+export function speaking(): boolean {
+  return 'speechSynthesis' in window && window.speechSynthesis.speaking;
+}
+
 export function hush(): void {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }

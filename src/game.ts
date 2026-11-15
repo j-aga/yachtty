@@ -23,6 +23,7 @@ export interface Options {
   autoTrim: boolean; // the game sets the mainsheet
   autoSteer: number | null; // the game steers to this heading (radians)
   hints: 'all' | 'steering' | 'none';
+  remind: boolean; // say the hint aloud if the problem isn't fixed after a few seconds
   starOverTarget: boolean;
   showStarCount: boolean;
 }
@@ -45,6 +46,7 @@ export const DEFAULTS: Options = {
   autoTrim: false,
   autoSteer: null,
   hints: 'all',
+  remind: true,
   starOverTarget: false,
   showStarCount: false,
 };

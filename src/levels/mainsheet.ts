@@ -72,6 +72,7 @@ export function mainsheetLevel(): Mode {
   const begin = (g: Game) => {
     const s = STEPS[index];
     g.opts.autoSteer = s.heading * DEG;
+    g.opts.remind = s.goal !== 'stop'; // a flapping sail is the whole idea here
     held = 0;
     g.say(s.title, s.sub);
   };
