@@ -2,9 +2,11 @@
 //
 //   npm run voices            make an MP3 for every line in voice/phrases.json that lacks one
 //   npm run voices samples    make one sample per available voice, in voice-samples/
+//   npm run voices redo bow   re-make every line containing the word "bow"
 //
 // The API key is read from .env.local (XAI_API_KEY=...). The voice and speed are
-// set in voice/config.json. Changing either re-makes every line.
+// set in voice/config.json. Changing either re-makes every line. "replace" there
+// fixes how words are said, e.g. { "bow": "/baʊ/" }; use `redo` to apply it.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -47,7 +49,7 @@ const KEY = apiKey();
 const headers = { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' };
 
 /** Ask xAI to say some text; returns the MP3 bytes. Waits and retries if told to slow down. */
-async function synthesize(text, voice, speed, bitRate = 128000) {
+async function synthesize(text, voice, speed, bitRate = 128000, replace = undefined) {
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(API, {
       method: 'POST',
@@ -58,6 +60,7 @@ async function synthesize(text, voice, speed, bitRate = 128000) {
         language: 'en',
         speed,
         output_format: { codec: 'mp3', sample_rate: 24000, bit_rate: bitRate },
+        ...(replace && Object.keys(replace).length ? { replace } : {}),
       }),
     });
     if (res.ok) return Buffer.from(await res.arrayBuffer());
@@ -129,16 +132,24 @@ async function generate() {
   if (!same) {
     manifest = { voice: config.voice, speed: config.speed, bitRate: config.bitRate, files: {} };
   }
+  // `redo <word>` re-makes every line containing that word.
+  const redo = process.argv[2] === 'redo' ? process.argv.slice(3) : [];
+  const again = (p) => redo.some((w) => new RegExp(`\\b${w}\\b`, 'i').test(p));
   const todo = phrases.filter(
-    (p) => !manifest.files[p] || !fs.existsSync(path.join(OUT, manifest.files[p])),
+    (p) => again(p) || !manifest.files[p] || !fs.existsSync(path.join(OUT, manifest.files[p])),
   );
+  if (process.argv.includes('--dry')) {
+    console.log(todo.join('\n'));
+    console.log(`${todo.length} lines, ${todo.reduce((n, p) => n + p.length, 0)} characters. Nothing sent.`);
+    return;
+  }
   const chars = todo.reduce((n, p) => n + p.length, 0);
   console.log(`${phrases.length} lines, ${todo.length} to make (${chars} characters) in voice "${config.voice}".`);
 
   let failed = 0;
   await pool(todo, 4, async (text) => {
     try {
-      const audio = await synthesize(text, config.voice, config.speed, config.bitRate);
+      const audio = await synthesize(text, config.voice, config.speed, config.bitRate, config.replace);
       const name = fileFor(text);
       fs.writeFileSync(path.join(OUT, name), audio);
       manifest.files[text] = name;
