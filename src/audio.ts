@@ -136,7 +136,7 @@ const VOICE_DIR = `${import.meta.env.BASE_URL}voice/`;
 let recorded: Record<string, string> = {}; // sentence -> file name
 const clips = new Map<string, Promise<AudioBuffer>>();
 
-fetch(`${VOICE_DIR}manifest.json`)
+const recordedReady = fetch(`${VOICE_DIR}manifest.json`)
   .then((r) => (r.ok ? r.json() : null))
   .then((m: { files?: Record<string, string> } | null) => {
     recorded = m?.files ?? {};
@@ -223,9 +223,25 @@ function deviceVoice(line: string): Promise<void> {
   });
 }
 
+/**
+ * Is the sound system awake? Right after the first tap it is still starting
+ * up, so give it a moment rather than giving up on the recordings.
+ */
+async function audioAwake(): Promise<boolean> {
+  if (!ac) return false;
+  if (ac.state !== 'running') {
+    try {
+      await Promise.race([ac.resume(), pause(1000)]);
+    } catch {
+      // Not allowed yet: the device voice will do.
+    }
+  }
+  return ac.state === 'running';
+}
+
 async function sayLine(line: string, mine: number): Promise<void> {
   const file = recorded[line];
-  if (file && ac?.state === 'running') {
+  if (file && (await audioAwake()) && mine === turn) {
     try {
       await playClip(file, mine);
       return;
@@ -245,6 +261,8 @@ export function speak(text: string): void {
   const mine = turn;
   busy = true;
   void (async () => {
+    // On a slow connection the list of recordings may still be on its way.
+    await Promise.race([recordedReady, pause(2000)]);
     for (const line of lines) {
       if (mine !== turn) return;
       await sayLine(line, mine);
