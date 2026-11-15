@@ -13,6 +13,9 @@ npm run dev
 Then open http://localhost:5173. To play on an iPad on the same Wi-Fi, run
 `npm run dev -- --host` and open the Network address it prints.
 
+On the iPad, use Safari's Share button and **Add to Home Screen** to get a
+full-screen app with its own icon.
+
 ## Levels
 
 1. **Meet the boat** - tap the parts of a dinghy, then a quiz.
